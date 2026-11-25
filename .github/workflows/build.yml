@@ -21,18 +21,29 @@ jobs:
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
           mkdir -p proj/app/src/main/assets proj/app/src/main/java/com/doni/flap proj/app/src/main/res/mipmap-hdpi proj/app/src/main/res/mipmap-mdpi proj/app/src/main/res/mipmap-xhdpi proj/app/src/main/res/mipmap-xxhdpi proj/app/src/main/res/mipmap-xxxhdpi
           cp index.html proj/app/src/main/assets/index.html
+
           ICON_SRC=""
-          if [ -f 3964.png ]; then
-            ICON_SRC="3964.png"
-          elif [ -f icon.png ]; then
-            ICON_SRC="icon.png"
+          for f in 3964.png icon.png logo.png doni.png 3964.jpg icon.jpg logo.jpg doni.jpg; do
+            if [ -f "$f" ]; then
+              ICON_SRC="$f"
+              break
+            fi
+          done
+
+          if [ -z "$ICON_SRC" ]; then
+            ICON_SRC=$(find . -maxdepth 3 -not -path './proj*' -not -path './.git*' \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) | head -n 1 || true)
           fi
+
           if [ -n "$ICON_SRC" ]; then
+            echo "Using icon: $ICON_SRC"
             for d in mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
               cp "$ICON_SRC" "proj/app/src/main/res/$d/ic_launcher.png"
               cp "$ICON_SRC" "proj/app/src/main/res/$d/ic_launcher_round.png"
             done
+          else
+            echo "No icon file found in repo, using default Android icon"
           fi
+
           cd proj
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           cat > settings.gradle <<'E'
