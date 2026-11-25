@@ -19,14 +19,26 @@ jobs:
         run: |
           set -e
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          mkdir -p proj/app/src/main/assets proj/app/src/main/java/com/doni/flap
+          mkdir -p proj/app/src/main/assets proj/app/src/main/java/com/doni/flap proj/app/src/main/res/mipmap-hdpi proj/app/src/main/res/mipmap-mdpi proj/app/src/main/res/mipmap-xhdpi proj/app/src/main/res/mipmap-xxhdpi proj/app/src/main/res/mipmap-xxxhdpi
           cp index.html proj/app/src/main/assets/index.html
+          ICON_SRC=""
+          if [ -f 3964.png ]; then
+            ICON_SRC="3964.png"
+          elif [ -f icon.png ]; then
+            ICON_SRC="icon.png"
+          fi
+          if [ -n "$ICON_SRC" ]; then
+            for d in mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
+              cp "$ICON_SRC" "proj/app/src/main/res/$d/ic_launcher.png"
+              cp "$ICON_SRC" "proj/app/src/main/res/$d/ic_launcher_round.png"
+            done
+          fi
           cd proj
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           cat > settings.gradle <<'E'
           pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement { repositories { google(); mavenCentral() } }
-          rootProject.name = "DoniFlap"
+          rootProject.name = "FlappyDoni"
           include ':app'
           E
           cat > build.gradle <<'E'
@@ -53,7 +65,10 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>
-              <application android:label="Doni Flap" android:allowBackup="true"
+              <application android:label="Flappy doni"
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher_round"
+                  android:allowBackup="true"
                   android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
                   <activity android:name=".MainActivity" android:exported="true"
                       android:screenOrientation="portrait"
@@ -98,6 +113,5 @@ jobs:
           gradle assembleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: DoniFlap-apk
+          name: FlappyDoni-apk
           path: proj/app/build/outputs/apk/release/*.apk
-
